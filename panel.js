@@ -1,0 +1,67 @@
+async function pluginDetails(url = "", token) {
+    console.log('GET with token = ', token);
+    console.log(url);
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "X-Shopware-Token": token,
+        },
+    });
+    return response.json();
+}
+
+let shopwareVersion = '';
+
+function getCompatibleVer(pluginBinaries) {
+    let compatibleBinary = '';
+    pluginBinaries.forEach((binary) => {
+        let foundCompatibleVersion = binary.compatibleSoftwareVersions.find(version => version.name === shopwareVersion);
+        if (foundCompatibleVersion) {
+            compatibleBinary = binary.version;
+        }
+    });
+    return compatibleBinary;
+}
+
+chrome.devtools.network.onRequestFinished.addListener(request => {
+    request.getContent((body) => {
+        if (request.request && request.request.url && request._resourceType === 'xhr') {
+            let url = request.request.url;
+            let urlArray = url.split('/');
+
+            if (urlArray[urlArray.length - 2] === 'onPremiseShops') {
+                shopwareVersion = JSON.parse(body).shopwareVersion.name;
+                // reset list here
+                document.querySelector('#response-body-container').innerHTML = '';
+            }
+
+            if (urlArray[urlArray.length - 1].split('?')[0] === 'pluginlicenses') {
+                let shopwareTokenObject = request.request.headers.find(header => header.name === 'X-Shopware-Token')
+                let pluginList = JSON.parse(body);
+
+                const table = document.createElement("TABLE");  //makes a table element for the page
+                const header = table.createTHead();
+                const headerRow = header.insertRow(0);
+                headerRow.insertCell(0).innerHTML = "Name";
+                headerRow.insertCell(1).innerHTML = "Latest Version";
+                headerRow.insertCell(2).innerHTML = "Compatible Version";
+
+                // found list-request, render buttons of detail-pages
+                pluginList.forEach(async (plugin) => {
+                    const pluginDetailResponse = await pluginDetails(url.split('?')[0] + '/' + plugin.id, shopwareTokenObject.value);
+                    let binaries = pluginDetailResponse.plugin.binaries;
+                    let latestBinary = binaries.slice(-1)[0];
+                    let compatibleVer = getCompatibleVer(binaries);
+
+                    let row = table.insertRow();
+                    row.insertCell(0).innerHTML = pluginDetailResponse.description;
+                    row.insertCell(1).innerHTML = latestBinary.version;
+                    row.insertCell(2).innerHTML = compatibleVer;
+
+                    document.querySelector('#response-body-container').appendChild(table);
+                });
+            }
+
+        }
+    });
+});

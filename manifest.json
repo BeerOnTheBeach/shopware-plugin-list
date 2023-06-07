@@ -1,0 +1,7 @@
+{
+  "manifest_version": 3,
+  "name": "Shopware-Extension-List",
+  "version": "1.0",
+  "description": "Adds a Shopware-Extension-List in the dev-tools as tab",
+  "devtools_page": "list.html"
+}
