@@ -1,6 +1,4 @@
 async function pluginDetails(url = "", token) {
-    console.log('GET with token = ', token);
-    console.log(url);
     const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -49,6 +47,16 @@ chrome.devtools.network.onRequestFinished.addListener(request => {
                 headerRow.insertCell(1).innerHTML = "Latest Version";
                 headerRow.insertCell(2).innerHTML = "Compatible Version";
 
+                pluginList = pluginList.sort((a, b) => {
+                    if (a.plugin.name < b.plugin.name) {
+                        return -1;
+                    }
+                    if (a.plugin.name > b.plugin.name) {
+                        return 1;
+                    }
+                    return 0;
+                })
+
                 pluginList.forEach(async (plugin) => {
                     const pluginDetailResponse = await pluginDetails(url.split('?')[0] + '/' + plugin.id, shopwareTokenObject.value);
                     let binaries = pluginDetailResponse.plugin.binaries;
@@ -69,10 +77,21 @@ chrome.devtools.network.onRequestFinished.addListener(request => {
                 let pluginList = JSON.parse(body);
 
                 const table = document.createElement("TABLE");  //makes a table element for the page
+                table.innerHTML = '';
                 const header = table.createTHead();
                 const headerRow = header.insertRow(0);
                 headerRow.insertCell(0).innerHTML = "Name";
                 headerRow.insertCell(1).innerHTML = "Installed Version";
+
+                pluginList = pluginList.sort((a, b) => {
+                    if (a.name < b.name) {
+                        return -1;
+                    }
+                    if (a.name > b.name) {
+                        return 1;
+                    }
+                    return 0;
+                })
 
                 pluginList.forEach((plugin) => {
                     let row = table.insertRow();
