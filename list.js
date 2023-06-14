@@ -1,1 +1,1 @@
-chrome.devtools.panels.create("Shopware-Extension-List", null, 'panel.html');
+chrome.devtools.panels.create("Shopware-Plugin-List", null, 'panel.html');

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Shopware-Extension-List",
+  "name": "Shopware-Plugin-List",
   "version": "1.0",
-  "description": "Adds a Shopware-Extension-List in the dev-tools as tab",
+  "description": "Adds a Shopware-Plugin-List in the dev-tools as tab",
   "devtools_page": "list.html"
 }

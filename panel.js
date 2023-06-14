@@ -29,12 +29,15 @@ chrome.devtools.network.onRequestFinished.addListener(request => {
             let url = request.request.url;
             let urlArray = url.split('/');
 
+
+            // Shopware Version
             if (urlArray[urlArray.length - 2] === 'onPremiseShops') {
                 shopwareVersion = JSON.parse(body).shopwareVersion.name;
                 // reset list here
                 document.querySelector('#response-body-container').innerHTML = '';
             }
 
+            // List Table for newest Version and compatible version
             if (urlArray[urlArray.length - 1].split('?')[0] === 'pluginlicenses') {
                 let shopwareTokenObject = request.request.headers.find(header => header.name === 'X-Shopware-Token')
                 let pluginList = JSON.parse(body);
@@ -46,7 +49,6 @@ chrome.devtools.network.onRequestFinished.addListener(request => {
                 headerRow.insertCell(1).innerHTML = "Latest Version";
                 headerRow.insertCell(2).innerHTML = "Compatible Version";
 
-                // found list-request, render buttons of detail-pages
                 pluginList.forEach(async (plugin) => {
                     const pluginDetailResponse = await pluginDetails(url.split('?')[0] + '/' + plugin.id, shopwareTokenObject.value);
                     let binaries = pluginDetailResponse.plugin.binaries;
@@ -57,6 +59,25 @@ chrome.devtools.network.onRequestFinished.addListener(request => {
                     row.insertCell(0).innerHTML = pluginDetailResponse.description;
                     row.insertCell(1).innerHTML = latestBinary.version;
                     row.insertCell(2).innerHTML = compatibleVer;
+
+                    document.querySelector('#response-body-container').appendChild(table);
+                });
+            }
+
+            // List Table installed Plugins incl. Versions
+            if (urlArray[urlArray.length - 1] === 'installed') {
+                let pluginList = JSON.parse(body);
+
+                const table = document.createElement("TABLE");  //makes a table element for the page
+                const header = table.createTHead();
+                const headerRow = header.insertRow(0);
+                headerRow.insertCell(0).innerHTML = "Name";
+                headerRow.insertCell(1).innerHTML = "Installed Version";
+
+                pluginList.forEach((plugin) => {
+                    let row = table.insertRow();
+                    row.insertCell(0).innerHTML = plugin.label;
+                    row.insertCell(1).innerHTML = plugin.version;
 
                     document.querySelector('#response-body-container').appendChild(table);
                 });
